@@ -1,15 +1,29 @@
-#
-# Ole Troan, ot@cisco.com
-# September 2010
+MMARK :=mmark
+TXT := $(patsubst %.md,%.txt,$(wildcard *.md))
+XML := $(patsubst %.md,%.xml,$(wildcard *.md))
+HTML := $(patsubst %.md,%.html,$(wildcard *.md))
+PDF := $(patsubst %.md,%.pdf,$(wildcard *.md))
 
-XML2RFC:=xml2rfc
+txt: $(TXT)
 
-all:	drafts
-drafts: draft-troan-6man-universal-ra-option
+%.txt: %.md
+	$(MMARK) $< > $(basename $<).xml && xml2rfc --text --v3 $(basename $<).xml && rm $(basename $<).xml
 
-draft-troan-6man-universal-ra-option: draft-troan-6man-universal-ra-option.xml
-	$(XML2RFC) $< $@-02.txt
+html: $(HTML)
 
-.PHONY: clean drafts all
+%.html: %.md
+	$(MMARK) $< > $(basename $<).xml && xml2rfc --html --v3 $(basename $<).xml && rm $(basename $<).xml
+
+xml: $(XML)
+
+%.xml: %.md
+	$(MMARK) $< > $(basename $<).xml
+
+pdf: $(PDF)
+
+%.pdf: %.md
+	$(MMARK) $< > $(basename $<).xml && xml2rfc --pdf --v3 $(basename $<).xml && rm $(basename $<).xml
+
+.PHONY: clean
 clean:
-	$(RM) *.txt
+	rm -f *.txt *.xml
