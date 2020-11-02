@@ -14,7 +14,7 @@ stream = "IETF"
 initials="T."
 surname="Winters"
 fullname="T. Winters"
-organization = "UNH"
+organization = "QA Cafe"
   [author.address]
   email = "tim@qacafe.com"
 
@@ -77,7 +77,7 @@ this document are to interpreted as described in RFC 6919 [@!RFC6919].
 
 This document specifies a new "self-describing" universal configuration option.
 Currently new configuration option requires "standards action". The proposal is
-that no IETF document is required. The configuration option is described
+that no future IETF document will be required. The configuration option is described
 directly in the universal configuration IANA registry.
 
 # The Universal IPv6 Configuration option
@@ -148,19 +148,19 @@ dictionary. Private configuration information can be included in the option
 using different keys.
 
 If information learnt via this option conflicts with other configuration
-information learnt via Router Advertisement messages or via DHCP, that is
+information learnt via Router Advertisement messages or via DHCPv6, that is
 considered a configuration error. How those conflicts should be resolved is left
 up to the implementation.
 
 # Implementation Guidance
 
-The purpose of this option is to allow users to use the RA or DHCP as an opaque
+The purpose of this option is to allow users to use the RA or DHCPv6 as an opaque
 carrier for configuration information without requiring code changes in the
 option carrying infrastructure.
 
-On the router or DHCP server side there should be an API allowing a user to add
+On the router or DHCPv6 server side there should be an API allowing a user to add
 an element, e.g. a JSON object [@RFC8259] or a pre-encoded CBOR string to RAs
-sent on a given interface or to DHCP messages sent to a client.
+sent on a given interface or to DHCPv6 messages sent to a client.
 
 On the host side, an API SHOULD be available allowing applications to subscribe
 to received configuration elements. It SHOULD be possible to subscribe to
@@ -168,7 +168,7 @@ configuration object by dictionary key.
 
 The contents of any elements that are not recognized, either in whole or in
 part, by the receiving host MUST be ignored and the remainder of option's
-contents processed as normal.
+contents MUST be processed as normal.
 
 # Implementation Status
 
