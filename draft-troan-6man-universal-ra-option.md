@@ -7,7 +7,7 @@ workgroup = "Network Working Group"
 [seriesInfo]
 status = "standard"
 name = "Internet-Draft"
-value = "draft-troan-6man-universal-ra-option-03"
+value = "draft-troan-6man-universal-ra-option-05"
 stream = "IETF"
 
 [[author]]
@@ -108,7 +108,7 @@ Data:
 
 The Option is zero-padded to nearest 8-octet boundary.
 
-Example:
+Example of an JSON instance of the option:
 
 
 ``` json
@@ -125,15 +125,17 @@ Example:
         },
         "nat64": {
             "prefix": "64:ff9b::/96"
-        }
-        "rio": {
-            "routes": [
-                "rio_routes": {
-                    "prefix": "::/0",
-                    "next-hop": "fe80::1"
-                }
-            ]
-        }
+        },
+        "rio": [
+            {
+                "prefix": "::/0",
+                "next-hop": "fe80::1"
+            },
+            {
+                "prefix": "2001:db8::/32",
+                "next-hop": "fe80::2"
+            }
+        ]
     }
 }
 ```
@@ -152,6 +154,17 @@ information learnt via Router Advertisement messages or via DHCPv6, that is
 considered a configuration error. How those conflicts should be resolved is left
 up to the implementation.
 
+# CBOR encoding
+
+It is recommended that the user can configure the option using JSON. Likewise an
+application registering interest in an option SHOULD be able to use string keys.
+The CBOR encoding to save space, uses integers for map keys. The mapping table
+between integer and string map keys are part of the IANA registry for the
+option.
+
+Values -23-23 encodes to a single byte in CBOR, and these values are reserved
+for IETF used map keys.
+
 # Implementation Guidance
 
 The purpose of this option is to allow users to use the RA or DHCPv6 as an opaque
@@ -169,6 +182,8 @@ configuration object by dictionary key.
 The contents of any elements that are not recognized, either in whole or in
 part, by the receiving host MUST be ignored and the remainder of option's
 contents MUST be processed as normal.
+
+An implementation SHOULD provide a "JSON interface" for configuring the option.
 
 # Implementation Status
 
@@ -189,10 +204,22 @@ in the information received.
 
 IANA is requested to add a new registry for the Universal IPv6 Configuration
 option. The registry should be named "IPv6 Universal Configuration Information
-Option". Changes and additions to the registry require expert review [@RFC8126].
+Option".
 
 The schema field follows the CDDL schema definition in [@!RFC8610].
 
+Changes and additions to the registry follow the policies below [@RFC8126]:
+
+Range                      | Registration Procedure
+---------------------------|----------------------
+-23-23                     | Standards Action
+24-32767                   | Specification Required
+32768-18446744073709551615 | Expert Review
+
+A new registration requires a new CBOR key to parameter name assignment and a
+CDDL definition.
+
+## Universal configuration option
 The IANA is requested to add the universal option to the
 "IPv6 Neighbor Discovery Option Formats" registry with the value
 of 42.
@@ -201,65 +228,92 @@ The IANA is requested to add the universal option to the
 "Dynamic Host Configuration Protocol for IPv6 (DHCPv6) Option
 Codes" registry.
 
+
 ## Initial objects in the registry
 
-The PVD [@RFC8801] elements (and PIO, RIO [@RFC4191]) are included to provide an
-alternative representation for the proposed new options in that draft.
+### CDDL/JSON Mapping Parameters to CBOR
+
+Parameter Name / JSON key | CBOR Key
+--------------------------|-----------
+ietf                      | -23
+pio                       | -22
+mtu                       | -21
+rio                       | -20
+dns                       | -19
+nat64                     | -18
+ipv6-only                 | -17
+pvd                       | -16
+prefix                    | -15
+preferred-lifetime        | -14
+valid-lifetime            | -13
+lifetime                  | -12
+a-flag                    | -11
+l-flag                    | -10
+preference                | -9 
+nexthop                   | -8 
+nssl                      | -7 
+dnss                      | -6 
+fqdn                      | -5 
+uri                       | -4 
 
 
-~~~
+### Key Registry
 
-   +-------------------------------------------------+-----------+
-   | CDDL Description                                | Reference |
-   +---------------+---------------------------------+-----------+
-   | ietf = {                                        |           |
-   |   ? dns : dns				     |		 |
-   |   ? nat64: nat64				     |		 |
-   |   ? ipv6-only: bool			     |		 |
-   |   ? pvd : pvd				     |		 |
-   |   ? mtu : uint .size 4			     |		 |
-   |   ? rio : rio				     |		 |
-   | }						     |		 |
-   |                                                 |           |
-   | pio = {                                         | [RFC4861] |
-   |   prefix : tstr                                 |           |
-   |   ? preferred-lifetime : uint                   |           |
-   |   ? valid-lifetime : uint                       |		 |
-   |   ? a-flag : bool				     |		 |
-   |   ? l-flag : bool				     |		 |
-   | }						     |		 |
-   |                                                 |           |
-   | rio_route = {				     | [RFC4191] |
-   |   prefix : tstr				     |		 |
-   |   ? preference : (0..3)			     |		 |
-   |   ? lifetime : uint			     |		 |
-   |   ? mtu : uint .size 4			     | [this]    |
-   |   ? nexthop: tstr                               |           |   
-   | }						     |		 |
-   | rio = {					     |		 |
-   |   routes : [+ rio_route]			     |		 |
-   | }						     |		 |
-   |                                                 |           |
-   | dns = {                                         | [RFC8106] |
-   |  dnssl : [* tstr]                               |           |
-   |  rdnss : ipv6-addresses : [* tstr]              |           |
-   |  ? lifetime : uint                              |           |
-   | }                                               |           |
-   |                                                 |           |
-   | nat64 = {	                   		     | [RFC7050] |
-   |   prefix : tstr                                 |		 |
-   | }     			                     |		 |
-   | ipv6-only : bool                                | [v6only]  |
-   |						     |           |
-   | pvd = {                                         | [pvd]     |
-   |   fqdn : tstr				     |           |
-   |   uri : tstr				     |		 |
-   |   ? dns : dns				     |		 |
-   |   ? nat64: nat64				     |		 |
-   |   ? pio : pio				     |		 |
-   |   ? rio : rio				     |		 |
-   | }						     |		 |
-   +---------------+---------------------------------+-----------+
+~~~ cddl
++------------------------------------------------+-----------+
+|CDDL                                            | Reference |
++------------------------------------------------+-----------+
+|ietf = {                                        |           |
+|  ? pio : [+ pio]                               |           |
+|  ? mtu : (0..65535)                            |           |
+|  ? rio : [+ rio]                               |           |
+|  ? dns : dns                                   |           |
+|  ? nat64: nat64                                |           |
+|  ? ipv6-only: bool                             |           |
+|  ? pvd : pvd                                   |           |
+|}                                               |           |
+|                                                |           |
+|pio = {                                         | RFC4861   |
+|  prefix : ipv6-prefix                          |           |
+|  ? preferred-lifetime : uint .size 4           |           |
+|  ? valid-lifetime : uint .size 4               |           |
+|  ? a-flag : bool                               |           |
+|  ? l-flag : bool                               |           |
+|}                                               |           |
+|                                                |           |
+|rio = {                                         | RFC4191   |
+|  prefix : ipv6-prefix                          |           |
+|  ? preference : (0..3)                         |           |
+|  ? lifetime : uint .size 4                     |           |
+|  ? mtu : (0..65535)                            |           |
+|  ? nexthop: ipv6-address                       |           |
+|}                                               |           |
+|                                                |           |
+|dns = {                                         | RFC8106   |
+|  nssl : [* tstr]                               |           |
+|  dnss : [+ ipv6-address]                       |           |
+|  lifetime : uint .size 4                       |           |
+|}                                               |           |
+|                                                |           |
+|nat64 = {                                       | RFC7050   |
+|  prefix : ipv6-prefix                          |           |
+|}                                               |           |
+|                                                |           |
+|pvd = {                                         |           |
+|  fqdn : tstr                                   |           |
+|  uri : tstr                                    |           |
+|  ? dns : dns                                   |           |
+|  ? nat64: nat64                                |           |
+|  ? pio : [+ pio]                               |           |
+|  ? rio : [+ rio]                               |           |
+|}                                               |           |
+|ipv6-prefix = #6.261(bstr)                      |           |
+|ipv6-address = #6.260(bstr)                     |           |
++------------------------------------------------+-----------+
 ~~~
 
 {backmatter}
+# Acknowledgements
+
+Many thanks to Dave Thaler for feedback and suggestions of a more effective CBOR encoding.
+Thank you very much to Carsten Bormann for CBOR and CDDL help.
