@@ -214,7 +214,7 @@ Changes and additions to the registry follow the policies below [@RFC8126]:
 
 Range                      | Registration Procedure
 ---------------------------|----------------------
--23-23                     | Standards Action
+-23-23                       | Standards Action
 24-32767                   | Specification Required
 32768-18446744073709551615 | Expert Review
 
@@ -226,7 +226,6 @@ The IANA is requested to add the universal option to the
 "IPv6 Neighbor Discovery Option Formats" registry with the value
 of 42.
 
-=======
 ## Initial objects in the registry
 
 The PVD [@RFC8801] elements and DNS [@RFC8106]) are included to provide an
