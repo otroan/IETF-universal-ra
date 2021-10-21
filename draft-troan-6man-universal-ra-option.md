@@ -35,8 +35,8 @@ One of the original intentions for the IPv6 host configuration, was to configure
 the network-layer parameters only with IPv6 ND, and use service discovery for
 other configuration information. Unfortunately that hasn't panned out quite as
 planned, and we are in a situation where all kinds of configuration options are
-added to RAs and DHCP. This document proposes a new universal option for RA and
-DHCP in a self-describing data format, with the list of elements maintained in
+added to RAs. This document proposes a new universal option for RA
+in a self-describing data format, with the list of elements maintained in
 an IANA registry, with greatly relaxed rules for registration.
 
 {mainmatter}
@@ -44,9 +44,9 @@ an IANA registry, with greatly relaxed rules for registration.
 # Introduction
 
 This document proposes a new universal option for the Router Advertisement IPv6
-ND message [@!RFC4861] and DHCPv6 [@!RFC8415]. Its purpose is to use the RA and
-DHCP messages as opaque carriers for configuration information between an agent
-on a router or DHCP server and host / host application.
+ND message [@!RFC4861]. Its purpose is to use the RA
+messages as opaque carriers for configuration information between an agent
+on a router and a host.
 
 DHCP is suited to give per-client configuration information, while the RA
 mechanism advertises configuration information to all hosts on the link. There
@@ -58,9 +58,11 @@ clients and so on. And of course some options are only available in RAs and some
 options are only available in DHCP.
 
 While this proposal does not resolve the DHCP vs RA debate, it proposes a
-solution to the problem of a very slow process of standardizing new options, and
-the IETF spending an inordinate amount of time arguing over new configuration
-options.
+solution to the problem of a very slow process of standardizing new Router Advertisement options, 
+and the IETF spending an inordinate amount of time arguing over new configuration
+options in Router Advertisements.  It is possible in the future to use 
+the new universal option in DHCP, since this would lead to additional conflict resolution 
+an additional document will need to be considered for that.
 
 # Conventions
 
@@ -142,7 +144,7 @@ Example of an JSON instance of the option:
 
 
 The universal IPv6 Configuration option MUST be small enough to fit within a
-single IPv6 ND or DHCPv6 packet. It then follows that a single element in the
+single IPv6 ND packet. It then follows that a single element in the
 dictionary cannot be larger than what fits within a single option. Different
 elements can be split across multiple universal configuration options (in
 separate packets). All IANA registered elements are under the "ietf" key in the
@@ -150,7 +152,7 @@ dictionary. Private configuration information can be included in the option
 using different keys.
 
 If information learnt via this option conflicts with other configuration
-information learnt via Router Advertisement messages or via DHCPv6, that is
+information learnt via Router Advertisement messages, that is
 considered a configuration error. How those conflicts should be resolved is left
 up to the implementation.
 
@@ -167,13 +169,13 @@ for IETF used map keys.
 
 # Implementation Guidance
 
-The purpose of this option is to allow users to use the RA or DHCPv6 as an opaque
+The purpose of this option is to allow users to use the RA as an opaque
 carrier for configuration information without requiring code changes in the
 option carrying infrastructure.
 
-On the router or DHCPv6 server side there should be an API allowing a user to add
+On the router there should be an API allowing a user to add
 an element, e.g. a JSON object [@RFC8259] or a pre-encoded CBOR string to RAs
-sent on a given interface or to DHCPv6 messages sent to a client.
+sent on a given interface.
 
 On the host side, an API SHOULD be available allowing applications to subscribe
 to received configuration elements. It SHOULD be possible to subscribe to
@@ -224,9 +226,11 @@ The IANA is requested to add the universal option to the
 "IPv6 Neighbor Discovery Option Formats" registry with the value
 of 42.
 
-The IANA is requested to add the universal option to the
-"Dynamic Host Configuration Protocol for IPv6 (DHCPv6) Option
-Codes" registry.
+=======
+## Initial objects in the registry
+
+The PVD [@RFC8801] elements and DNS [@RFC8106]) are included to provide an
+alternative representation for the proposed new options in that draft.
 
 
 ## Initial objects in the registry
@@ -265,7 +269,6 @@ uri                       | -4
 +------------------------------------------------+-----------+
 |ietf = {                                        |           |
 |  ? pio : [+ pio]                               |           |
-|  ? mtu : (0..65535)                            |           |
 |  ? rio : [+ rio]                               |           |
 |  ? dns : dns                                   |           |
 |  ? nat64: nat64                                |           |
@@ -273,21 +276,6 @@ uri                       | -4
 |  ? pvd : pvd                                   |           |
 |}                                               |           |
 |                                                |           |
-|pio = {                                         | RFC4861   |
-|  prefix : ipv6-prefix                          |           |
-|  ? preferred-lifetime : uint .size 4           |           |
-|  ? valid-lifetime : uint .size 4               |           |
-|  ? a-flag : bool                               |           |
-|  ? l-flag : bool                               |           |
-|}                                               |           |
-|                                                |           |
-|rio = {                                         | RFC4191   |
-|  prefix : ipv6-prefix                          |           |
-|  ? preference : (0..3)                         |           |
-|  ? lifetime : uint .size 4                     |           |
-|  ? mtu : (0..65535)                            |           |
-|  ? nexthop: ipv6-address                       |           |
-|}                                               |           |
 |                                                |           |
 |dns = {                                         | RFC8106   |
 |  nssl : [* tstr]                               |           |
@@ -298,6 +286,7 @@ uri                       | -4
 |nat64 = {                                       | RFC7050   |
 |  prefix : ipv6-prefix                          |           |
 |}                                               |           |
+|ipv6-only : bool                                | [v6only]  |
 |                                                |           |
 |pvd = {                                         |           |
 |  fqdn : tstr                                   |           |
@@ -307,8 +296,6 @@ uri                       | -4
 |  ? pio : [+ pio]                               |           |
 |  ? rio : [+ rio]                               |           |
 |}                                               |           |
-|ipv6-prefix = #6.261(bstr)                      |           |
-|ipv6-address = #6.260(bstr)                     |           |
 +------------------------------------------------+-----------+
 ~~~
 
