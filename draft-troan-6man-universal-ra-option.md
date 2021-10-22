@@ -7,7 +7,7 @@ workgroup = "Network Working Group"
 [seriesInfo]
 status = "standard"
 name = "Internet-Draft"
-value = "draft-troan-6man-universal-ra-option-05"
+value = "draft-troan-6man-universal-ra-option-06"
 stream = "IETF"
 
 [[author]]
